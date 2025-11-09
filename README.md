@@ -1,4 +1,4 @@
-# 💫 Telegram Payment Gateway Bot
+# 💫 Telegram Payment Stars Bot
 
 A bot that handles **Telegram Stars payments** on API.
 It generates payment links, accepts payments, and sends callbacks with transaction results.
