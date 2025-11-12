@@ -1,5 +1,5 @@
 from aiogram.exceptions import TelegramBadRequest
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException, status
 
 from schemas import CreateInvoice, InvoiceResponse, BaseResponse, PaymentRefound
 from services.payment import PaymentService
@@ -11,23 +11,34 @@ router = APIRouter()
 async def create_invoice(data: CreateInvoice):
     try:
         invoice_data = await PaymentService.create_invoice(**data.model_dump())
+        return InvoiceResponse(**invoice_data)
     except TelegramBadRequest as error:
-        return InvoiceResponse(url=None, status="fail", detail=str(error))
-
-    return InvoiceResponse(**invoice_data)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error)
+        )
 
 
 @router.post("/refound", response_model=BaseResponse)
 async def refound(data: PaymentRefound):
     try:
         result = await PaymentService.refound(**data.model_dump())
-    except TelegramBadRequest as error:
-        return BaseResponse(status="fail", detail=str(error))
 
-    return BaseResponse(
-        status="success" if result else "fail",
-        detail="Refund successful" if result else "Refund failed"
-    )
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Refund failed"
+            )
+
+        return BaseResponse(
+            status="success",
+            detail="Refund successful"
+        )
+    except TelegramBadRequest as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error)
+        )
 
 
 @router.get("/")
@@ -36,5 +47,4 @@ async def get_payments(
         limit: int = Query(100, ge=1, le=1000),
 ):
     transactions = await PaymentService.get_all(offset, limit)
-
     return transactions.model_dump()
