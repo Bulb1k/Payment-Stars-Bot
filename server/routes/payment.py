@@ -1,19 +1,20 @@
 from aiogram.exceptions import TelegramBadRequest
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
-from schemas import CreateInvoice, Payment, InvoiceResponse, BaseResponse, PaymentRefound
+from schemas import CreateInvoice, InvoiceResponse, BaseResponse, PaymentRefound
 from services.payment import PaymentService
 
 router = APIRouter()
 
+
 @router.post("/invoice", response_model=InvoiceResponse)
 async def create_invoice(data: CreateInvoice):
     try:
-        invoice_link = await PaymentService.create_invoice(**data.model_dump())
+        invoice_data = await PaymentService.create_invoice(**data.model_dump())
     except TelegramBadRequest as error:
         return InvoiceResponse(url=None, status="fail", detail=str(error))
 
-    return InvoiceResponse(url=invoice_link)
+    return InvoiceResponse(**invoice_data)
 
 
 @router.post("/refound", response_model=BaseResponse)
@@ -28,6 +29,7 @@ async def refound(data: PaymentRefound):
         detail="Refund successful" if result else "Refund failed"
     )
 
+
 @router.get("/")
 async def get_payments(
         offset: int = Query(0, ge=0),
@@ -36,4 +38,3 @@ async def get_payments(
     transactions = await PaymentService.get_all(offset, limit)
 
     return transactions.model_dump()
-

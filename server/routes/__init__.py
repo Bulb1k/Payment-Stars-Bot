@@ -9,5 +9,4 @@ api_router = APIRouter(
     dependencies=[Depends(verify_api_key)]
 )
 
-
 api_router.include_router(prefix="/payment", router=invoice_router)

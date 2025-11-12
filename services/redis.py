@@ -14,7 +14,7 @@ redis_client = redis.Redis(
 )
 
 
-class BaseRepository:
+class RedisStore:
     TTL = int(timedelta(days=3).total_seconds())
     NAME = str(bot.id)
     PREFIX = "base"

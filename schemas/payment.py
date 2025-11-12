@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+
 class CreateInvoice(BaseModel):
     amount: int
     callback_url: str
@@ -15,7 +16,8 @@ class BaseResponse(BaseModel):
 
 
 class InvoiceResponse(BaseResponse):
-    url: str | None = None
+    invoice_url: str | None = None
+    payment_id: str | None = None
 
 
 class PaymentRefound(BaseModel):

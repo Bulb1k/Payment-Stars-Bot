@@ -10,10 +10,11 @@ router = Router()
 
 
 @router.message(Command("pay"), AdminFilter())
-async def pay(message: types.Message):
-    invoice_link = await PaymentService.create_invoice("https://af699b204019.ngrok-free.app/", 1)
+async def test_pay(message: types.Message):
+    invoice_data = await PaymentService.create_invoice("https://af699b204019.ngrok-free.app/", 1)
+    invoice_url = invoice_data.get("invoice_url")
 
-    await message.answer(invoice_link, parse_mode="HTML")
+    await message.answer(invoice_url, parse_mode="HTML")
 
 
 @router.message(Command("refound"), AdminFilter())
@@ -27,12 +28,14 @@ async def pay(message: types.Message):
 
 @router.pre_checkout_query()
 async def pre_checkout_query_handler(pre_checkout_query: types.PreCheckoutQuery):
-    is_exists = await PaymentService.repo.exists(pre_checkout_query.invoice_payload)
+    is_exists = await PaymentService.storage.exists(pre_checkout_query.invoice_payload)
 
     if not is_exists:
         logger.error(f"Invoice not found: {pre_checkout_query.invoice_payload}")
-        return await pre_checkout_query.answer(ok=False,
-                                               error_message="The payment time has expired, create a new invoice")
+        return await pre_checkout_query.answer(
+            ok=False,
+            error_message="The payment time has expired, create a new invoice"
+        )
 
     logger.debug(f"Pre_checkout_query: {pre_checkout_query}")
     return await pre_checkout_query.answer(ok=True)
@@ -42,8 +45,8 @@ async def pre_checkout_query_handler(pre_checkout_query: types.PreCheckoutQuery)
 async def successful_payment(message: types.Message):
     payment_id = message.successful_payment.invoice_payload
 
-    invoice_callback_url = await PaymentService.repo.get(payment_id)
-    await PaymentService.repo.delete(payment_id)
+    invoice_callback_url = await PaymentService.storage.get(payment_id)
+    await PaymentService.storage.delete(payment_id)
 
     await send_callback(
         url=invoice_callback_url,
