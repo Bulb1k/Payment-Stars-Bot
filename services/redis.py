@@ -30,6 +30,22 @@ class RedisStore:
         await redis_client.setex(full_key, ttl, value)
 
     @classmethod
+    async def hset(cls, key_part: str, data: dict, ttl: int = None) -> None:
+        full_key = cls._build_key(key_part)
+        ttl = ttl if ttl is not None else cls.TTL
+        await redis_client.hsetex(full_key, mapping=data, ex=ttl)
+
+    @classmethod
+    async def hget(cls, key_part: str, field: str) -> str | None:
+        full_key = cls._build_key(key_part)
+        return await redis_client.hget(full_key, field)
+
+    @classmethod
+    async def hgetall(cls, key_part: str) -> dict:
+        full_key = cls._build_key(key_part)
+        return await redis_client.hgetall(full_key)
+
+    @classmethod
     async def get(cls, key_part: str) -> str | None:
         full_key = cls._build_key(key_part)
         return await redis_client.get(full_key)

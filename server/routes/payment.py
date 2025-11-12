@@ -22,7 +22,10 @@ async def create_invoice(data: CreateInvoice):
 @router.post("/refound", response_model=BaseResponse)
 async def refound(data: PaymentRefound):
     try:
-        result = await PaymentService.refound(**data.model_dump())
+        result = await PaymentService.refound(
+            chat_id=data.chat_id,
+            charge_id=data.payment_id
+        )
 
         if not result:
             raise HTTPException(

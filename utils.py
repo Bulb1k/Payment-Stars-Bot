@@ -22,11 +22,12 @@ async def send_callback(url: str, payment: Payment):
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
+            logger.info(f"Sending callback for invoice_id {payment.invoice_id} to {url} data {payment.model_dump()}")
             async with session.post(url, json=payment.model_dump()) as response:
                 response.raise_for_status()
-                logger.info(f"Callback for payment_id {payment.id} sent successfully to {url}")
+                logger.info(f"Callback for invoice_id {payment.invoice_id} sent successfully to {url}")
         except (aiohttp.ClientResponseError, aiohttp.ClientError, InvalidUrlClientError) as e:
-            logger.error(f"Failed to send callback for payment_id {payment.id} to {url}: {e}")
+            logger.error(f"Failed to send callback for invoice_id {payment.invoice_id} to {url}: {e}")
 
 
 class AdminFilter(BaseFilter):

@@ -6,6 +6,8 @@ from aiogram.types import LabeledPrice
 from bot import bot
 from services.redis import RedisStore
 
+import json
+
 
 class PaymentStore(RedisStore):
     PREFIX = "payment"
@@ -17,20 +19,26 @@ class PaymentService:
 
     @classmethod
     async def create_invoice(cls, callback_url: str, amount: int, title: str = "Goods",
-                             description: str = "buy goods") -> dict[str, str]:
-        payment_id = str(uuid.uuid4())
+                             description: str = "buy goods", order_id: str | None = None) -> dict[str, str]:
+        invoice_id = str(uuid.uuid4())
 
-        invoice_url = await bot.create_invoice_url(
+
+        invoice_url = await bot.create_invoice_link(
             title=title,
             description=description,
-            payload=payment_id,
+            payload=invoice_id,
             currency="XTR",
             prices=[LabeledPrice(label="Price", amount=amount)]
         )
 
-        await cls.storage.set(payment_id, callback_url)
+        data = {
+            "order_id": order_id,
+            "callback_url": callback_url
+        }
 
-        return {"invoice_url": invoice_url, "payment_id": payment_id}
+        await cls.storage.hset(invoice_id, data)
+
+        return {"invoice_url": invoice_url, "invoice_id": invoice_id}
 
     @classmethod
     async def refound(cls, chat_id: int, charge_id: str) -> str:
