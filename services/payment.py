@@ -23,7 +23,7 @@ class PaymentService:
         invoice_id = str(uuid.uuid4())
 
 
-        invoice_url = await bot.create_invoice_link(
+        invoice_url = await bot.create_invoice_url(
             title=title,
             description=description,
             payload=invoice_id,
