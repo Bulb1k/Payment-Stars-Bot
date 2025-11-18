@@ -13,7 +13,8 @@ class BaseResponse(BaseModel):
     status: Literal["success", "fail"] = "success"
     detail: str = ""
 
-class InvoiceResponse(BaseResponse):
+
+class InvoiceResponse(BaseModel):
     invoice_url: str | None = None
     invoice_id: str | None = None
 
@@ -21,6 +22,7 @@ class InvoiceResponse(BaseResponse):
 class PaymentRefound(BaseModel):
     payment_id: str
     chat_id: int
+
 
 class Payment(BaseModel):
     invoice_id: str

@@ -9,7 +9,7 @@ from core.config import SERVER_ADDRESS, SERVER_HOST, SERVER_PORT, USE_NGROK, WEB
 from core.logger import logger
 from handlers.payment import router as payment_router
 from server.app import app
-from utils import get_ngrok_url
+from utils.ngrok import get_ngrok_url
 
 
 async def setup_handlers(dp: Dispatcher) -> None:

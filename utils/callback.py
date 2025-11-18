@@ -4,32 +4,37 @@ from aiogram.types import Message
 from aiohttp import InvalidUrlClientError
 
 from core import logger
-from core.config import NGROK_INTERFACE_HOST, NGROK_INTERFACE_PORT, ADMIN_LIST
+from core.config import CALLBACK_WEBHOOK_SECRET
 from schemas.payment import Payment
 
+import hmac
+import hashlib
+import json
 
-async def get_ngrok_url() -> str:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"http://{NGROK_INTERFACE_HOST}:{NGROK_INTERFACE_PORT}/api/tunnels") as resp:
-            data = await resp.json()
-    for t in data.get("tunnels", []):
-        if t.get("proto") == "https":
-            return t["public_url"]
-    raise RuntimeError("ngrok HTTPS tunnel not found")
+def generation_callback_signature(secret: str, data: dict):
+    return hmac.new(
+        secret.encode(),
+        msg=json.dumps(data).encode(),
+        digestmod=hashlib.sha256
+    ).hexdigest()
 
 
 async def send_callback(url: str, payment: Payment):
     timeout = aiohttp.ClientTimeout(total=10)
+    signature = generation_callback_signature(CALLBACK_WEBHOOK_SECRET, payment.model_dump())
+
+    headers = {
+        "X-Webhook-Signature": signature,
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             logger.info(f"Sending callback for invoice_id {payment.invoice_id} to {url} data {payment.model_dump()}")
-            async with session.post(url, json=payment.model_dump()) as response:
+            async with session.post(url, json=payment.model_dump(), headers=headers) as response:
                 response.raise_for_status()
                 logger.info(f"Callback for invoice_id {payment.invoice_id} sent successfully to {url}")
         except (aiohttp.ClientResponseError, aiohttp.ClientError, InvalidUrlClientError) as e:
             logger.error(f"Failed to send callback for invoice_id {payment.invoice_id} to {url}: {e}")
 
-
-class AdminFilter(BaseFilter):
-    async def __call__(self, message: Message) -> bool:
-        return str(message.from_user.id) in ADMIN_LIST

@@ -4,7 +4,8 @@ from aiogram.filters import Command
 from core import logger
 from schemas.payment import Payment
 from services.payment import PaymentService
-from utils import send_callback, AdminFilter
+from filters.admin import AdminFilter
+from utils.callback import send_callback
 
 router = Router()
 
