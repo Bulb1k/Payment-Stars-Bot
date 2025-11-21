@@ -9,13 +9,13 @@ from utils.callback import send_callback
 
 router = Router()
 
-@router.message(Command("refound"), AdminFilter())
+@router.message(Command("refund"), AdminFilter())
 async def pay(message: types.Message):
     charge_id = message.text.split(" ")[-1]
 
-    result = await PaymentService.refound(message.chat.id, charge_id)
+    result = await PaymentService.refund(message.chat.id, charge_id)
 
-    await message.answer("Refound success" if result else "Refound failed")
+    await message.answer("Refund success" if result else "Refund failed")
 
 
 @router.pre_checkout_query()

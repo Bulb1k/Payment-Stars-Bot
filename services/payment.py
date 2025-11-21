@@ -41,7 +41,7 @@ class PaymentService:
         return {"invoice_url": invoice_url, "invoice_id": invoice_id}
 
     @classmethod
-    async def refound(cls, chat_id: int, charge_id: str) -> str:
+    async def refund(cls, chat_id: int, charge_id: str) -> str:
         return await bot.refund_star_payment(chat_id, charge_id)
 
     @classmethod

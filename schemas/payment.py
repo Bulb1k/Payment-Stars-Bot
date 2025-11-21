@@ -19,7 +19,7 @@ class InvoiceResponse(BaseModel):
     invoice_id: str | None = None
 
 
-class PaymentRefound(BaseModel):
+class PaymentRefund(BaseModel):
     payment_id: str
     chat_id: int
 

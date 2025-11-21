@@ -33,7 +33,10 @@ class RedisStore:
     async def hset(cls, key_part: str, data: dict, ttl: int = None) -> None:
         full_key = cls._build_key(key_part)
         ttl = ttl if ttl is not None else cls.TTL
-        await redis_client.hsetex(full_key, mapping=data, ex=ttl)
+        async with redis_client.pipeline(transaction=True) as pipe:
+            await pipe.hset(full_key, mapping=data)
+            await pipe.expire(full_key, ttl)
+            await pipe.execute()
 
     @classmethod
     async def hget(cls, key_part: str, field: str) -> str | None:

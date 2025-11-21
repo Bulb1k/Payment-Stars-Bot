@@ -1,7 +1,7 @@
 from aiogram.exceptions import TelegramBadRequest
 from fastapi import APIRouter, Query, HTTPException, status
 
-from schemas import CreateInvoice, InvoiceResponse, BaseResponse, PaymentRefound
+from schemas import CreateInvoice, InvoiceResponse, BaseResponse, PaymentRefund
 from services.payment import PaymentService
 
 router = APIRouter()
@@ -19,10 +19,10 @@ async def create_invoice(data: CreateInvoice):
         )
 
 
-@router.post("/refound", response_model=BaseResponse)
-async def refound(data: PaymentRefound):
+@router.post("/refund", response_model=BaseResponse)
+async def refund(data: PaymentRefund):
     try:
-        result = await PaymentService.refound(
+        result = await PaymentService.refund(
             chat_id=data.chat_id,
             charge_id=data.payment_id
         )
